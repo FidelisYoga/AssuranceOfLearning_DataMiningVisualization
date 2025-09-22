@@ -1,0 +1,81 @@
+---
+title: "AOL_Datmin"
+output: html_document
+date: "2024-05-29"
+---
+
+---
+(1: Solar, 2: Wind, 3: Hydroelectric, 4: Geothermal, 5: Biomass, 6: Tidal, 7: Wave).
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+setwd("/Users/fitafanturahma/Documents/Binus/Materi Semester 2/Codingan (Sems 2)/Data Mining/AOL")
+```
+
+```{r}
+data <- read.csv("energy_dataset_.csv",header=T)
+```
+
+```{r}
+colSums(is.na(data))
+```
+
+```{r}
+datax <- data[,c(11,12)]
+outliers <- data[0]
+for(kolom in names(datax)){
+  boxplot(data[[kolom]], main = kolom)
+  
+  iqr <- IQR(data[[kolom]])
+  q1 <- quantile(data[[kolom]],p=0.25)
+  q3 <- quantile(data[[kolom]],p=0.75)
+  
+  outliers[[kolom]] <- ifelse(data[[kolom]] <= q1 - 1.5*iqr | data[[kolom]] >= q3 + 1.5*iqr, 1,0)
+}
+```
+
+```{r}
+# Mengubah ke nama sebenarnya tiap tipe energi terbatukan
+type_mapping <- c("1" = "Solar", "2" = "Wind", "3" = "Hydroelectric",
+                  "4" = "Geothermal", "5" = "Biomass", "6" = "Tidal", "7" = "Wave")
+```
+
+```{r}
+# Tambahkan kolom dengan nama tipe energi terbarukan
+data$Renewable_Energy_Type <- type_mapping[as.character(data$Type_of_Renewable_Energy)]
+```
+
+```{r}
+# Hitung rata-rata indeks pengurangan polusi udara untuk setiap tipe energi terbarukan
+avg_air_pollution_reduction <- data %>%
+  group_by(Renewable_Energy_Type) %>%
+  summarize(Average_Air_Pollution_Reduction_Index = mean(Air_Pollution_Reduction_Index, na.rm = TRUE))
+```
+
+```{r}
+# Buat plot menggunakan ggplot2
+ggplot(avg_air_pollution_reduction, aes(x = reorder(Renewable_Energy_Type, -Average_Air_Pollution_Reduction_Index), y = Average_Air_Pollution_Reduction_Index)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  labs(title = "Average Air Pollution Reduction Index by Type of Renewable Energy",
+       x = "Type of Renewable Energy",
+       y = "Average Air Pollution Reduction Index") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1))
+```
+
+
+
+
+
+
+
+
+
+
+
